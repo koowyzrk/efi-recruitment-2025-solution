@@ -1,5 +1,12 @@
 version: "3.8"
 services:
+  nginx:
+    build:
+    ports:
+      - "80:80"
+    depends_on:
+      - weatherapp_backend
+      - weatherapp_frontend
   weatherapp_backend:
     build: ./backend
     ports:
