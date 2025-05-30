@@ -85,7 +85,7 @@ Po uruchomieniu aplikacji z Docker Compose, możesz łatwo sprawdzić, czy hot r
 1. Przejdź do <http://localhost:8000>. Powinieneś zobaczyć ikonke podobną do pogody.
 
 * Zmodyfikuj plik źródłowy na swoim komputerze:
-* W pliku frontend/src/index.jsx (lub innym komponencie) wprowadź drobną, widoczną zmianę tekstową. Na przykład, dodaj <h1>Hello Docker!</h1> gdzieś w sekcji render().
+* W pliku frontend/src/index.jsx (lub innym komponencie) wprowadź drobną, widoczną zmianę tekstową. Na przykład, dodaj \<h1>Hello Docker!\</h1> gdzieś w sekcji render().
 Zapisz plik.
 
 2. Obserwuj zmiany:
