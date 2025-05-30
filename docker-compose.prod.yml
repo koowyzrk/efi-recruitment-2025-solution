@@ -3,7 +3,7 @@ services:
   nginx:
     build: ./nginx
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - weatherapp_backend
       - weatherapp_frontend
