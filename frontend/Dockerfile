@@ -2,7 +2,7 @@
 FROM node:16-alpine
 
 # setting the dir where container will store copied files
-WORKDIR /usr/local/weather_app_frontend 
+WORKDIR /usr/local/weatherapp_frontend 
 
 # intalling all crucial packages for the app in build-time
 COPY package.json package-lock.json ./

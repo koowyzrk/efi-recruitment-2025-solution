@@ -1,15 +1,22 @@
 version: "3.8"
 services:
   weatherapp_backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    build: ./backend
+    volumes: 
+        - ./backend:/usr/local/weatherapp_backend
+        - /usr/local/wheatherapp_backend/node_modules
     ports:
-      - "9000:9000"
+        - "9000:9000"
+    command: npm run dev
   weatherapp_frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+      build: ./frontend
+      volumes: 
+        - ./frontend:/usr/local/weatherapp_frontend
+        - /usr/local/wheatherapp_frontend/node_modules
+      ports:
+        - "8000:8000"
+      depends_on:
+        - weatherapp_backend
 
+# volumes:
+#   nodemodules: {}

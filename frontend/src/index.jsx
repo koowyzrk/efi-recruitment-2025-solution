@@ -20,6 +20,7 @@ class Weather extends React.Component {
 
     this.state = {
       icon: "",
+      message: "hot bind test"
     };
   }
 
@@ -29,11 +30,12 @@ class Weather extends React.Component {
   }
 
   render() {
-    const { icon } = this.state;
+    const { icon , message} = this.state;
 
     return (
       <div className="icon">
         { icon && <img src={`/img/${icon}.svg`} /> }
+        <h1>{message}</h1>
       </div>
     );
   }

@@ -34,4 +34,5 @@ app.use(router.allowedMethods());
 
 app.listen(port);
 
+console.log(`hot bind test`);
 console.log(`App listening on port ${port}`);
