@@ -3,7 +3,7 @@ services:
   nginx:
     build: ./nginx
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - weatherapp_backend
       - weatherapp_frontend
@@ -16,6 +16,6 @@ services:
       ports:
         - "8000:8000"
       environment:
-        - ENDPOINT=http://localhost:9000/api
+        - ENDPOINT=http://34.107.5.93:80/api
       depends_on:
         - weatherapp_backend

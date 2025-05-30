@@ -9,12 +9,91 @@ To prosta aplikacja pogodowa, pokazująca aktualne warunki dla wybranego miasta.
 
 ---
 
-## Co pod maską?
+## Co w projekcie
 
 * **Node.js 16:** Aplikacja działa na Node.js w wersji 16 (`node:16-alpine`), ponieważ nowsze wersje powodowały błędy.
 * **Zmienne środowiskowe:** Klucz API do OpenWeatherMap (**`APPID`**) jest ustawiony jako zmienna środowiskowa dla bezpieczeństwa i elastyczności.
 
 ---
+
+### Budowanie aplikacji lokalnie oraz w chmurze
+
+Przed zbudowaniem aplikacji należy upewnić się czy w swoim środowisku komputerowym ma się zainstalowane programy. Lista potrzebnych:
+
+* ansible
+* terraform
+* git
+* docker
+* docker-compose
+* gcloud
+
+Aby je zainstalować wystarczy wykonać komendę w terminalu:
+
+* dla środowiska Debian, Ubuntu
+
+```bash
+sudo apt install ansible terraform git docker docker-compose
+```
+
+* dla środowiska Arch
+
+```bash
+sudo pacman -S ansible terraform git docker docker-compose
+```
+
+Do zainstalowania gcloud potrzebujemy wykonać następujące działania:
+
+```bash
+curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz
+tar -xf google-cloud-cli-linux-x86_64.tar.gz
+./google-cloud-sdk/install.sh
+./google-cloud-sdk/bin/gcloud init
+```
+
+Po zainstalowaniu potrzebnego oprogramowania możemy przystąpić do zbudowania aplikacji.
+
+1. Najpierw musimy sciągnąć potrzebne repozytorium, używając:
+
+```bash
+git clone https://github.com/koowyzrk/efi-recruitment-2025-solution
+```
+
+2. Możemy to zrobić na dwa sposoby:
+
+* lokalnie - nie będziemy do tego potrzebować terraform a jedynie ansible,docker i docker-compose
+  * Przed trzeba dodać swojego użytkownika do grupy docker
+  * wywołać skrypt deploy.sh i wybrać opcję lokalnie
+
+* w chmurze
+  * przed przystąpieniem do inicjalizacji za pomocą terraform musimy stworzyć Google Cloud project:
+
+  ```bash
+  gcloud projects create PROJECT_ID
+  ```
+
+  * po stworzeniu należy go wybrać
+
+  ```bash
+  gcloud config set project PROJECT_ID
+  ```
+
+  * włączyć Compute Engine API:
+
+  ```bash
+  gcloud services enable compute.googleapis.com
+  ```
+
+  Do poprawnego działania terraform i do umożliwienia zalogowania sie do maszyny za pomocą ssh musimy przed użyciem terraform dodać zmienną środowiskową aby dodać do maszyny odpowiedni klucz ssh:
+
+  ```bash
+  export TF_VAR_user_ssh_keys="efi_user:$(cat path/to/id_rsa_internship.pub)"
+  ```
+
+  Po tych krokach możemy skorzystać z skryptu deploy.sh
+
+  ```bash
+  ./deploy.sh
+  ```
 
 ### Docker
 
@@ -85,8 +164,7 @@ Po uruchomieniu aplikacji z Docker Compose, możesz łatwo sprawdzić, czy hot r
 1. Przejdź do <http://localhost:8000>. Powinieneś zobaczyć ikonke podobną do pogody.
 
 * Zmodyfikuj plik źródłowy na swoim komputerze:
-* W pliku frontend/src/index.jsx (lub innym komponencie) wprowadź drobną, widoczną zmianę tekstową. Na przykład, dodaj \<h1>Hello Docker!\</h1> gdzieś w sekcji render().
-Zapisz plik.
+* W pliku frontend/src/index.jsx (lub innym komponencie) wprowadź drobną, widoczną zmianę tekstową. Zapisz plik.
 
 2. Obserwuj zmiany:
 
@@ -95,11 +173,25 @@ Zapisz plik.
 
 3. Test hot reload dla backendu (opcjonalnie):
 
-* W pliku backend/src/index.js dodaj console.log('Zmiana w kodzie backendu!'); na początku pliku lub w jakiejś funkcji.
+* W pliku backend/src/index.js dodaj console.log('zmiana'); na początku pliku lub w jakiejś funkcji.
 * Zapisz plik.
 * W terminalu z logami: Zobaczysz, jak nodemon wykrywa zmianę pliku i automatycznie restartuje serwer Node.js, wyświetlając Twój nowy komunikat w logach.
 
 ### Cloud hosting
+
+Do hostingu wykorzystałem maszyne wirtualną compute instance dostępne w Google Cloud. Do stworzenia maszyny wykorzystałem komende:
+
+```bash
+gcloud compute instances create efi-recruitment-instance 
+  --zone=europe-west3-b --machine-type=e2-small 
+  --image-family=debian-12 
+  --image-project=debian-cloud 
+  --boot-disk-size=20GB 
+  --metadata=ssh-keys="weather_app:$(cat ~/.ssh/weather_rsa.pub)" 
+  --metadata=ssh-keys="efi_user:$(cat ~/Studies/intership/recruitment-2025/id_rsa_internship.pub)" 
+  --tags=http-server,https-server,weatherapp 
+  --scopes=https://www.googleapis.com/auth/cloud-platform
+```
 
 #### Dostęp SSH dla weryfikacji
 
@@ -108,10 +200,29 @@ Aby umożliwić weryfikację działania aplikacji oraz dostęp do maszyny wirtua
 Osoba weryfikująca może połączyć się z maszyną za pomocą:
 
 * **Nazwy użytkownika:** `efi_user`
-* **Zewnętrznego adresu IP instancji:** (Tutaj podaj aktualny adres IP swojej maszyny, np. `34.107.5.93`)
+* **Zewnętrznego adresu IP instancji:** ()
 * **Klucza prywatnego:** Odpowiadającego kluczowi publicznemu `id_rsa_internship.pub`.
 
-**Przykładowa komenda SSH dla weryfikujących (zakładając, że mają klucz prywatny `id_rsa_internship`):**
+**Przykładowa komenda SSH dla weryfikujących (`id_rsa_internship`):**
 
 ```bash
 ssh -i /sciezka/do/id_rsa_internship efi_user@34.107.5.93
+```
+
+#### Testowanie na maszynie wirtualnej
+
+Do testowania aplikacji zbudowanej w cloudzie na początku ściągałem ją za pomocą git clone z mojego repozytorium. Następnie po zbudowaniu za pomocą docker-compose. Jesteśmy w stanie z naszego lokalnego komputera dostać sie do strony za pomocą wpisania to do okna przeglądarki
+
+```
+http://{ip-maszyny}/
+```
+
+#### TERRAFORM
+
+Create a Google Cloud project: gcloud projects create PROJECT_ID
+Select the Google Cloud project that you created: gcloud config set project PROJECT_ID
+Enable the Compute Engine API: gcloud services enable compute.googleapis.com
+
+Grant roles to your user account. Run the following command once for each of the following IAM roles: roles/compute.instanceAdmin.v1:
+
+gcloud projects add-iam-policy-binding PROJECT_ID --member="user:USER_IDENTIFIER" --role=ROLE

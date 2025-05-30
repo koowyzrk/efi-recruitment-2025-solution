@@ -5,7 +5,9 @@ const baseURL = process.env.ENDPOINT;
 
 const getWeatherFromApi = async () => {
   try {
-    const response = await fetch(`${baseURL}/weather`);
+    // changing the fetch from fetch('{baseUrl}/weather')
+    // so it will refer to the host and port automatically
+    const response = await fetch(`api/weather`);
     return response.json();
   } catch (error) {
     console.error(error);
@@ -20,7 +22,7 @@ class Weather extends React.Component {
 
     this.state = {
       icon: "",
-      message: "hot bind test"
+      message: "hot bind"
     };
   }
 

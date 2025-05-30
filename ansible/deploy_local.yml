@@ -1,0 +1,10 @@
+- name: local deploy for weatherapp
+  hosts: local
+  become: no 
+
+  tasks:
+    - name: build and run docker
+      community.docker.docker_compose_v2:
+      project_src: "{{app_source_path}}"
+      build: yes
+      state: present

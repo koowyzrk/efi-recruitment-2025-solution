@@ -1,0 +1,47 @@
+- name: weather app
+  hosts: cloud 
+  become: yes
+
+  vars:
+    app_repo: "https://github.com/koowyzrk/efi-recruitment-2025-solution"
+    app_dir: "/opt/weather_app"
+
+  tasks:
+    - name: apt update
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: install docker
+      ansible.builtin.apt:
+       name:
+        - docker
+        - docker-compose
+
+    - name: install git
+      ansible.builtin.apt:
+       name:
+        - git
+
+    - name: create app dir
+      ansible.builtin.file:
+        path: "{{app_dir}}"
+        state: directory
+        mode: '0755'
+
+    - name: clone repository
+      ansible.builtin.git:
+        repo: "{{app_repo}}"
+        dest: "{{app_dir}}"
+
+    - name: add user to docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: build run docker
+      community.docker.docker_compose_v2:
+      project_src: "{{ app_target_dir }}"
+      build: yes
+      state: present
+
