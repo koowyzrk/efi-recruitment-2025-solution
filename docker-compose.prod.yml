@@ -8,7 +8,7 @@ services:
       build: ./frontend
       ports:
         - "8000:8000"
-        environment:
+      environment:
         - ENDPOINT=http://localhost:9000/api
       depends_on:
         - weatherapp_backend
