@@ -1,2 +1,2 @@
-FROM nginx:apline
-COPY default.conf /etc/nginx/conf.d/default.conf
+FROM nginx
+COPY nginx.conf /etc/nginx/conf.d/nginx.conf
