@@ -98,3 +98,20 @@ Zapisz plik.
 * W pliku backend/src/index.js dodaj console.log('Zmiana w kodzie backendu!'); na początku pliku lub w jakiejś funkcji.
 * Zapisz plik.
 * W terminalu z logami: Zobaczysz, jak nodemon wykrywa zmianę pliku i automatycznie restartuje serwer Node.js, wyświetlając Twój nowy komunikat w logach.
+
+### Cloud hosting
+
+#### Dostęp SSH dla weryfikacji
+
+Aby umożliwić weryfikację działania aplikacji oraz dostęp do maszyny wirtualnej, na instancji `efi-recruitment-instance` został dodany klucz publiczny `id_rsa_internship.pub`.
+
+Osoba weryfikująca może połączyć się z maszyną za pomocą:
+
+* **Nazwy użytkownika:** `efi_user`
+* **Zewnętrznego adresu IP instancji:** (Tutaj podaj aktualny adres IP swojej maszyny, np. `34.107.5.93`)
+* **Klucza prywatnego:** Odpowiadającego kluczowi publicznemu `id_rsa_internship.pub`.
+
+**Przykładowa komenda SSH dla weryfikujących (zakładając, że mają klucz prywatny `id_rsa_internship`):**
+
+```bash
+ssh -i /sciezka/do/id_rsa_internship efi_user@34.107.5.93

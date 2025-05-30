@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  weatherapp_backend:
+    build:
+      context: ./backend 
+    ports:
+      - "9000:9000" 
+  weatherapp_frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "8000:80"
+    depends_on:
+      - weatherapp_backend
