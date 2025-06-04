@@ -3,24 +3,55 @@
   become: yes
 
   vars:
+    ansible_python_interpreter: "/usr/bin/env python3"
     app_repo: "https://github.com/koowyzrk/efi-recruitment-2025-solution"
     app_dir: "/opt/weather_app"
 
   tasks:
-    - name: apt update
+    - name: apt update and install system packages
       ansible.builtin.apt:
+        name:
+          - python3
+          - python3-pip
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - git
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: download docker GPG apt key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.gpg
+        mode: '0644'
+        force: yes
+
+    - name: Add Docker Repository
+      ansible.builtin.apt_repository:
+        repo: deb https://download.docker.com/linux/debian stretch stable
+        state: present
         update_cache: yes
 
-    - name: install docker
+    - name: Install Docker Engine, CLI, Containerd and Docker Compose Plugin
       ansible.builtin.apt:
-       name:
-        - docker
-        - docker-compose
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
 
-    - name: install git
-      ansible.builtin.apt:
-       name:
-        - git
+    - name: Install Docker Module for Python
+      ansible.builtin.pip:
+        name: docker
+    # - name: Install docker-compose
+    #   ansible.builtin.pip:
+    #     name: docker-compose
 
     - name: create app dir
       ansible.builtin.file:
@@ -32,6 +63,8 @@
       ansible.builtin.git:
         repo: "{{app_repo}}"
         dest: "{{app_dir}}"
+        version: main
+        update: yes
 
     - name: add user to docker group
       ansible.builtin.user:
@@ -42,6 +75,5 @@
     - name: build run docker
       community.docker.docker_compose_v2:
       project_src: "{{ app_target_dir }}"
-      build: yes
+      build: always 
       state: present
-

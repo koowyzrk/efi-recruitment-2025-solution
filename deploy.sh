@@ -1,7 +1,5 @@
 #!/bin/bash
 
-read -p "Podaj nazwę użytkownika SSH dla połączenia z VM (np. Twoja nazwa użytkownika GCP, 'efi_user', 'weather_app'): " SSH_USER
-
 PROJECT_ROOT=$(pwd)
 
 echo "Wybierz środowisko wdrożenia:"
@@ -10,6 +8,7 @@ echo "2) Lokalnie (na Twojej maszynie)"
 read -p "Wybierz opcję (1/2): " DEPLOY_ENV
 
 if [ "$DEPLOY_ENV" == "1" ]; then
+  read -p "Podaj nazwę użytkownika SSH dla połączenia z VM (np. Twoja nazwa użytkownika GCP, 'efi_user', 'weather_app'): " SSH_USER
   echo "-------------------------------------"
   echo "Krok 1: Uruchamianie Terraform w chmurze..."
   echo "-------------------------------------"
