@@ -3,28 +3,26 @@ services:
   weatherapp_backend:
     build: ./backend
     volumes: 
-        - ./backend:/usr/local/weatherapp_backend
-        - /usr/local/wheatherapp_backend/node_modules
+      - ./backend:/usr/local/weatherapp_backend
+      - /usr/local/wheatherapp_backend/node_modules
     ports:
-        - "9000:9000"
+      - "9000:9000"
     command: sh -c "npm install && npm run dev"
     environment:
-        - APPID=5aeda305c5901cdfac613b050399dfe1
+      - APPID=5aeda305c5901cdfac613b050399dfe1
   weatherapp_frontend:
-      build: ./frontend
-      volumes: 
-        - ./frontend:/usr/local/weatherapp_frontend
-        - /usr/local/wheatherapp_frontend/node_modules
-      ports:
-        - "8000:80"
-      depends_on:
-        - weatherapp_backend
-      environment:
-        # - ENDPOINT=http://localhost:9000/api
-        - PORT=80
-      command: sh -c "npm install && npm start"
-      depends_on:
-        - weatherapp_backend
+    build: ./frontend
+    volumes: 
+      - ./frontend:/usr/local/weatherapp_frontend
+      - /usr/local/wheatherapp_frontend/node_modules
+    ports:
+      - "8000:80"
+    depends_on:
+      - weatherapp_backend
+    environment:
+      # - ENDPOINT=http://localhost:9000/api
+      - PORT=80
+    command: sh -c "npm install && npm start"
   nginx:
     build: ./nginx       
     ports:
