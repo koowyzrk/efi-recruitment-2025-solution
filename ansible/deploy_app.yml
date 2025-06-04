@@ -1,9 +1,15 @@
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Install python3 for Ansible
+      raw: sudo apt-get update && sudo apt-get install -y python3 python3-apt
+
 - name: weather app
-  hosts: cloud 
+  hosts: all 
   become: yes
 
   vars:
-    ansible_python_interpreter: "/usr/bin/env python3"
+    ansible_python_interpreter: "/usr/bin/python3"
     app_repo: "https://github.com/koowyzrk/efi-recruitment-2025-solution"
     app_dir: "/opt/weather_app"
 
@@ -11,8 +17,6 @@
     - name: apt update and install system packages
       ansible.builtin.apt:
         name:
-          - python3
-          - python3-pip
           - apt-transport-https
           - ca-certificates
           - curl
@@ -23,35 +27,40 @@
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: download docker GPG apt key
+    - name: Ensure keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Docker GPG key
       ansible.builtin.get_url:
         url: https://download.docker.com/linux/debian/gpg
         dest: /etc/apt/keyrings/docker.gpg
         mode: '0644'
-        force: yes
 
-    - name: Add Docker Repository
-      ansible.builtin.apt_repository:
-        repo: deb https://download.docker.com/linux/debian stretch stable
+    - name: Add Docker official GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/debian/gpg
         state: present
-        update_cache: yes
 
-    - name: Install Docker Engine, CLI, Containerd and Docker Compose Plugin
+    - name: Install Docker from Debian repo
       ansible.builtin.apt:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-          - docker-compose-plugin
+        name: docker.io
         state: present
         update_cache: yes
 
-    - name: Install Docker Module for Python
-      ansible.builtin.pip:
-        name: docker
-    # - name: Install docker-compose
-    #   ansible.builtin.pip:
-    #     name: docker-compose
+    - name: Install Docker Compose Plugin
+      ansible.builtin.apt:
+        name: docker-compose
+        state: present
+        update_cache: yes
+
+    - name: Install python3-docker package via apt
+      ansible.builtin.apt:
+        name: python3-docker
+        state: present
+        update_cache: yes
 
     - name: create app dir
       ansible.builtin.file:
@@ -72,8 +81,7 @@
         groups: docker
         append: yes
 
-    - name: build run docker
-      community.docker.docker_compose_v2:
-      project_src: "{{ app_target_dir }}"
-      build: always 
-      state: present
+    - name: Run docker-compose up
+      ansible.builtin.command:
+        cmd: docker-compose up -d --build
+        chdir: "{{ app_dir }}"

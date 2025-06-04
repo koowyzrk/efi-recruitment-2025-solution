@@ -30,6 +30,21 @@ resource "google_compute_instance" "default" {
   }
 }
 
+resource "google_compute_firewall" "allow_http_8000" {
+  name    = "allow-http-8000"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["8000"]
+  }
+
+  direction     = "INGRESS"
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["weatherapp"]
+  description   = "Allow external access to port 8000"
+}
+
 output "ip" {
   value = "${google_compute_instance.default.network_interface.0.access_config.0.nat_ip}"
 }
