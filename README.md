@@ -12,11 +12,30 @@ To prosta aplikacja pogodowa, pokazująca aktualne warunki dla wybranego miasta.
 ## Co w projekcie
 
 * **Node.js 16:** Aplikacja działa na Node.js w wersji 16 (`node:16-alpine`), ponieważ nowsze wersje powodowały błędy.
-* **Zmienne środowiskowe:** Klucz API do OpenWeatherMap (**`APPID`**) jest ustawiony jako zmienna środowiskowa dla bezpieczeństwa i elastyczności.
+* **Zmienne środowiskowe:
+  * ** Klucz API do OpenWeatherMap (**`APPID`**) jest ustawiony jako zmienna środowiskowa dla bezpieczeństwa i elastyczności.
+  * Zmienna przechowująca klucz ssh (**`TF_VAR_user_ssh_keys`**)
 
 ---
 
 ### Budowanie aplikacji lokalnie oraz w chmurze
+
+## Proces wdrażania
+
+W katalogu głównym znajduje się skrypt `deploy.sh`, który umożliwia wybór środowiska:
+
+1. **Tryb chmurowy (Google Cloud)** gdzie maszyna ma statyczny adres (34.40.75.156):
+   * Uruchamia Terraform i tworzy VM.
+   * Oczekuje na możliwość połączenia przez SSH.
+   * Uruchamia Ansible w celu zainstalowania i uruchomienia aplikacji.
+
+2. **Tryb lokalny**:
+   * Uruchamia Ansible bezpośrednio lokalnie.
+   * Buduje i uruchamia kontenery Dockera z katalogu źródłowego.
+
+---
+(Aplikacja już jest uruchomiona na postawionej maszynie ale i tak można użyć deploy.sh aby ją przeładować)
+Wystarczy więc wejść na strone http://34.40.75.156:8000 aby sprawdzić poprawność wykonanwego zadania.
 
 Przed zbudowaniem aplikacji należy upewnić się czy w swoim środowisku komputerowym ma się zainstalowane programy. Lista potrzebnych:
 
@@ -92,7 +111,7 @@ git clone https://github.com/koowyzrk/efi-recruitment-2025-solution
   Po tych krokach możemy skorzystać z skryptu deploy.sh
 
   ```bash
-  ./deploy.sh
+  ./deploy.sh --key /path/to/your/key
   ```
 
 ### Docker
@@ -171,15 +190,9 @@ Po uruchomieniu aplikacji z Docker Compose, możesz łatwo sprawdzić, czy hot r
 * W przeglądarce: Aplikacja powinna odświeżyć się automatycznie (lub w trybie live reload) i pokazać wprowadzoną zmianę, bez potrzeby ręcznego odświeżania strony czy przebudowywania obrazu Dockera.
 * W terminalu z logami: Jeśli masz otwarte docker compose logs -f weatherapp_frontend (lub docker compose logs -f), zobaczysz, jak webpack-dev-server wykrywa zmianę pliku, rekompiluje kod i sygnalizuje hot reload.
 
-3. Test hot reload dla backendu (opcjonalnie):
-
-* W pliku backend/src/index.js dodaj console.log('zmiana'); na początku pliku lub w jakiejś funkcji.
-* Zapisz plik.
-* W terminalu z logami: Zobaczysz, jak nodemon wykrywa zmianę pliku i automatycznie restartuje serwer Node.js, wyświetlając Twój nowy komunikat w logach.
-
 ### Cloud hosting
 
-Do hostingu wykorzystałem maszyne wirtualną compute instance dostępne w Google Cloud. Do stworzenia maszyny wykorzystałem komende:
+Do hostingu wykorzystałem maszyne wirtualną compute instance dostępne w Google Cloud.Przykładowa komenda do stworzenia maszyny:
 
 ```bash
 gcloud compute instances create efi-recruitment-instance 
@@ -188,41 +201,68 @@ gcloud compute instances create efi-recruitment-instance
   --image-project=debian-cloud 
   --boot-disk-size=20GB 
   --metadata=ssh-keys="weather_app:$(cat ~/.ssh/weather_rsa.pub)" 
-  --metadata=ssh-keys="efi_user:$(cat ~/Studies/intership/recruitment-2025/id_rsa_internship.pub)" 
   --tags=http-server,https-server,weatherapp 
   --scopes=https://www.googleapis.com/auth/cloud-platform
 ```
 
 #### Dostęp SSH dla weryfikacji
 
-Aby umożliwić weryfikację działania aplikacji oraz dostęp do maszyny wirtualnej, na instancji `efi-recruitment-instance` został dodany klucz publiczny `id_rsa_internship.pub`.
-
-Osoba weryfikująca może połączyć się z maszyną za pomocą:
+Aby umożliwić weryfikację działania aplikacji oraz dostęp do maszyny wirtualnej można połączyć się do niej za pomocą ssh. Dodałem do maszyny wirtualnej klucz publiczny id_rsa_internship.pub. Dodałem także na maszynie użytkownika efi_user do grupy sudo aby mogła wykonywać uprzywilejowane zadania. 
 
 * **Nazwy użytkownika:** `efi_user`
-* **Zewnętrznego adresu IP instancji:** ()
+* **Zewnętrznego adresu IP instancji, który można zpingować:** (34.40.75.156)
 * **Klucza prywatnego:** Odpowiadającego kluczowi publicznemu `id_rsa_internship.pub`.
 
 **Przykładowa komenda SSH dla weryfikujących (`id_rsa_internship`):**
 
 ```bash
-ssh -i /sciezka/do/id_rsa_internship efi_user@34.107.5.93
+ssh -i /sciezka/do/id_rsa_internship efi_user@34.40.75.156
 ```
 
-#### Testowanie na maszynie wirtualnej
+Gdyby klucz nie zadziałał w repozytorium umieszczę swój specjalnie wygenerowany klucz aby umożliwić dostęp, wtedy
 
-Do testowania aplikacji zbudowanej w cloudzie na początku ściągałem ją za pomocą git clone z mojego repozytorium. Następnie po zbudowaniu za pomocą docker-compose. Jesteśmy w stanie z naszego lokalnego komputera dostać sie do strony za pomocą wpisania to do okna przeglądarki
-
-```
-http://{ip-maszyny}/
+```bash
+ssh -i /sciezka/do/weather_rsa weather_app@34.40.75.156
 ```
 
-#### TERRAFORM
+## Terraform
 
-Create a Google Cloud project: gcloud projects create PROJECT_ID
-Select the Google Cloud project that you created: gcloud config set project PROJECT_ID
-Enable the Compute Engine API: gcloud services enable compute.googleapis.com
+Terraform odpowiada za **przygotowanie infrastruktury** potrzebnej do działania aplikacji w chmurze GCP.
 
-Grant roles to your user account. Run the following command once for each of the following IAM roles: roles/compute.instanceAdmin.v1:
+### Główne działania
 
-gcloud projects add-iam-policy-binding PROJECT_ID --member="user:USER_IDENTIFIER" --role=ROLE
+* Tworzy **statyczny adres IP** (zewnętrzny) dla maszyny wirtualnej. (34.40.75.156)
+* Tworzy **instancję VM** w strefie `europe-west3-b`, opartą na obrazie Debian 12.
+* Przypisuje **klucze SSH**, umożliwiające zdalne połączenie.
+* Definiuje **zasady zapory sieciowej (firewall)** umożliwiające dostęp do portu `8000` z zewnątrz.
+* Taguje instancję etykietą `weatherapp`, aby reguły sieciowe mogły ją identyfikować.
+* Udostępnia **adres IP instancji** jako dane wyjściowe (output).
+
+---
+
+## Ansible
+
+Ansible odpowiada za **konfigurację środowiska** oraz **wdrożenie aplikacji**.
+
+### `deploy_app.yml` – Wdrożenie w chmurze
+
+* Wykonywany zdalnie na maszynie wirtualnej GCP.
+* Instalacja wymaganych pakietów (`python3`, `git`, `curl`, `docker`, itp.).
+* Pobranie i dodanie oficjalnego klucza GPG Dockera.
+* Instalacja Dockera i Docker Compose.
+* Klonowanie repozytorium aplikacji z GitHub.
+* Dodanie użytkownika do grupy `docker`.
+* Uruchomienie aplikacji przy pomocy `docker-compose up -d --build`.
+
+### `deploy_local.yml` – Wdrożenie lokalne
+
+* Wykonywany lokalnie, bez potrzeby uprawnień administratora.
+* Buduje i uruchamia aplikację za pomocą `community.docker.docker_compose_v2` z lokalnego katalogu źródłowego.
+
+### `inventory.ini`
+
+* Definiuje grupy hostów dla Ansible:
+  * `local` – lokalna maszyna użytkownika.
+  * `cloud` – dynamiczna grupa dla maszyn w chmurze (ustawiana przez skrypt deploy.sh).
+
+---
