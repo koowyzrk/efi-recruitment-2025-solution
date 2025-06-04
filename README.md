@@ -35,7 +35,7 @@ W katalogu głównym znajduje się skrypt `deploy.sh`, który umożliwia wybór 
 
 ---
 (Aplikacja już jest uruchomiona na postawionej maszynie ale i tak można użyć deploy.sh aby ją przeładować)
-Wystarczy więc wejść na strone http://34.40.75.156:8000 aby sprawdzić poprawność wykonanwego zadania.
+Wystarczy więc wejść na strone <http://34.40.75.156:8000> aby sprawdzić poprawność wykonanwego zadania.
 
 Przed zbudowaniem aplikacji należy upewnić się czy w swoim środowisku komputerowym ma się zainstalowane programy. Lista potrzebnych:
 
@@ -207,7 +207,7 @@ gcloud compute instances create efi-recruitment-instance
 
 #### Dostęp SSH dla weryfikacji
 
-Aby umożliwić weryfikację działania aplikacji oraz dostęp do maszyny wirtualnej można połączyć się do niej za pomocą ssh. Dodałem do maszyny wirtualnej klucz publiczny id_rsa_internship.pub. Dodałem także na maszynie użytkownika efi_user do grupy sudo aby mogła wykonywać uprzywilejowane zadania. 
+Aby umożliwić weryfikację działania aplikacji oraz dostęp do maszyny wirtualnej można połączyć się do niej za pomocą ssh.
 
 * **Nazwy użytkownika:** `efi_user`
 * **Zewnętrznego adresu IP instancji, który można zpingować:** (34.40.75.156)
@@ -217,12 +217,6 @@ Aby umożliwić weryfikację działania aplikacji oraz dostęp do maszyny wirtua
 
 ```bash
 ssh -i /sciezka/do/id_rsa_internship efi_user@34.40.75.156
-```
-
-Gdyby klucz nie zadziałał w repozytorium umieszczę swój specjalnie wygenerowany klucz aby umożliwić dostęp, wtedy
-
-```bash
-ssh -i /sciezka/do/weather_rsa weather_app@34.40.75.156
 ```
 
 ## Terraform
